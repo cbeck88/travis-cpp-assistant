@@ -16,6 +16,17 @@ To use the assistant, set up your `.travis.yml` as follows
 
   Version strings should all have two dots, e.g. `GCC_VERSION=4.9.3`, `BOOST_VERSION=1.58.0`.
 
+  ```
+    # gcc 5.3
+    - os: linux
+      env: GCC_VERSION=5.3.0 BOOST_VERSION=1.58.0
+      compiler: gcc
+
+    - os: linux
+      env: LLVM_VERSION=3.6.2 BOOST_VERSION=1.55.0
+      compiler: clang
+  ```
+
 * Configure your *cache* to cache the `~/deps` directory.
 
   ```
@@ -24,7 +35,7 @@ To use the assistant, set up your `.travis.yml` as follows
       - ${TRAVIS_BUILD_DIR}/deps
   ```
 
-* During the *install* step, clone *this repository* and run `source ./install.sh`.
+* During the *install* step, clone this repository and run `source ./install.sh`.
   Actually, it is simplest just to `wget` that shell file:
 
   ```
@@ -35,11 +46,28 @@ To use the assistant, set up your `.travis.yml` as follows
 
   Or, commit it to your repository.
 
-* During your script, use the environment variable `CXX` with your build system,
+* During your *script* step, use the environment variable `CXX` with your build system,
   and include `BOOST_ROOT` to get the boost headers of the corresponding version.
+
+  You should respect the `CXXFLAGS` and `LDFLAGS` which are exported also.
+
+  ```
+  ${CXX} -I${BOOST_ROOT} ${CXXFLAGS} main.cpp -o a.out ${LDFLAGS}
+  ```
 
   If you need to compile boost, then you should `cd` into `BOOST_ROOT` and do it.
 
-You may examine the `.travis.yml` of this repo to see examples.
+* Both `gcc` and `clang` require you to apt-get a few small dependencies into ubuntu-precise.
+  `gcc` has some external libs that it needs like `mpfr`. `clang`
+  requires a gcc standard library version `>= 4.7`.
 
-For more info about caching, and clearing a bad cache, see travis-ci docs.
+  Check out the [.travis.yml](./travis.yml) of this repo to see a full example.
+
+For more info about caching, and clearing a bad cache, see [travis-ci docs](https://docs.travis-ci.com/user/caching/).
+
+Credits
+-------
+
+Note that much of this script is derived from the `.travis.yml` file of the [boost::hana](https://github.com/boostorg/hana),
+so credit for all the good parts should go to Louis Dionne, and any bugs and problems
+were likely my doing.
