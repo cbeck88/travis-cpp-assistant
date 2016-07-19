@@ -41,9 +41,9 @@ To use the assistant, set up your `.travis.yml` as follows
 
   ```
   install:
-    wget https://raw.githubusercontent.com/cbeck88/travis-cpp-assistant/master/install.sh
-    chmod +x install.sh
-    source ./install.sh
+    - wget https://raw.githubusercontent.com/cbeck88/travis-cpp-assistant/master/install.sh
+    - chmod +x install.sh
+    - source ./install.sh
   ```
 
   Or, commit it to your repository.
