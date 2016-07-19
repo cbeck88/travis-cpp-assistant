@@ -17,14 +17,15 @@ To use the assistant, set up your `.travis.yml` as follows
   Version strings should all have two dots, e.g. `GCC_VERSION=4.9.3`, `BOOST_VERSION=1.58.0`.
 
   ```
-    # gcc 5.3
-    - os: linux
-      env: GCC_VERSION=5.3.0 BOOST_VERSION=1.58.0
-      compiler: gcc
+  matrix:
+    include:
+      - os: linux
+        env: GCC_VERSION=5.3.0 BOOST_VERSION=1.58.0
+        compiler: gcc
 
-    - os: linux
-      env: LLVM_VERSION=3.6.2 BOOST_VERSION=1.55.0
-      compiler: clang
+      - os: linux
+        env: LLVM_VERSION=3.6.2 BOOST_VERSION=1.55.0
+        compiler: clang
   ```
 
 * Configure your *cache* to cache the `~/deps` directory.
@@ -39,9 +40,10 @@ To use the assistant, set up your `.travis.yml` as follows
   Actually, it is simplest just to `wget` that shell file:
 
   ```
-  wget https://raw.githubusercontent.com/cbeck88/travis-cpp-assistant/master/install.sh
-  chmod +x install.sh
-  source ./install.sh
+  install:
+    wget https://raw.githubusercontent.com/cbeck88/travis-cpp-assistant/master/install.sh
+    chmod +x install.sh
+    source ./install.sh
   ```
 
   Or, commit it to your repository.
