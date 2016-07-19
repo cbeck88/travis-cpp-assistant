@@ -3,11 +3,13 @@
 [![Build Status](https://travis-ci.org/cbeck88/travis-cpp-assistant.svg?branch=master)](http://travis-ci.org/cbeck88/travis-cpp-assistant)
 [![WTFPL licensed](https://img.shields.io/badge/license-WTFPL-blue.svg)](./LICENSE)
 
-Have a travis-ci C++ project?
+Do you have a travis-CI C++ project?
+
+Is your `.travis.yml` file taking on a life of its own?
 
 This assistant can be used to set up a nice, modern C++ build environment with
 multiple versions of boost, gcc, and clang, using the correct standard libraries,
-with relative ease.
+with relative ease, while keeping your `.travis.yml` nice and tidy.
 
 To use the assistant, set up your `.travis.yml` as follows
 
@@ -65,11 +67,15 @@ To use the assistant, set up your `.travis.yml` as follows
 
   Check out the [.travis.yml](./travis.yml) of this repo to see a full example.
 
+All compilers that you request will be built from source in the deps directory
+and cached for future builds.
+
 For more info about caching, and clearing a bad cache, see [travis-ci docs](https://docs.travis-ci.com/user/caching/).
+
+For specific compiler versions that you can request, check the urls that appear in `install.sh`.
 
 Credits
 -------
 
 Note that much of this script is derived from the `.travis.yml` file of the [boost::hana](https://github.com/boostorg/hana),
-so credit for all the good parts should go to Louis Dionne, and any bugs and problems
-were likely my doing.
+so credit for all the good parts should go to Louis Dionne, and any bugs were likely my doing.
