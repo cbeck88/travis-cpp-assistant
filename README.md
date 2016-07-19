@@ -11,6 +11,9 @@ This assistant can be used to set up a nice, modern C++ build environment with
 multiple versions of boost, gcc, and clang, using the correct standard libraries,
 with relative ease, while keeping your `.travis.yml` nice and tidy.
 
+All compilers that you request will be built from source in your home directory
+and cached for future builds.
+
 To use the assistant, set up your `.travis.yml` as follows
 
 * Configure your *build matrix* to set the variables `BOOST_VERSION`,
@@ -66,9 +69,6 @@ To use the assistant, set up your `.travis.yml` as follows
   requires a gcc standard library version `>= 4.7`.
 
   Check out the [.travis.yml](./travis.yml) of this repo to see a full example.
-
-All compilers that you request will be built from source in the deps directory
-and cached for future builds.
 
 For more info about caching, and clearing a bad cache, see [travis-ci docs](https://docs.travis-ci.com/user/caching/).
 
