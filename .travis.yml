@@ -90,7 +90,7 @@ matrix:
       compiler: clang
 
 install:
-  - travis_wait 50 source ./install.sh
+  - source ./install.sh
 
 script:
   - echo ${CXX}

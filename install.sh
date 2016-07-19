@@ -2,12 +2,52 @@
 
 set -e
 
+#####
+# Versions of travis_retry and travis_wait
+#####
+
 retry()
 {
   $* && exit
   $* && exit
   $*
 }
+
+travis_wait() {
+  local cmd="$@"
+  local log_file=travis_wait_$$.log
+
+  $cmd 2>&1 >$log_file &
+  local cmd_pid=$!
+
+  travis_jigger $! $cmd &
+  local jigger_pid=$!
+  local result
+
+  { wait $cmd_pid 2>/dev/null; result=$?; ps -p$jigger_pid 2>&1>/dev/null && kill $jigger_pid; } || exit 1
+  exit $result
+}
+
+travis_jigger() {
+  local timeout=40 # in minutes
+  local count=0
+
+  local cmd_pid=$1
+  shift
+
+  while [ $count -lt $timeout ]; do
+    count=$(($count + 1))
+    echo -e "\033[0mStill running ($count of $timeout): $@"
+    sleep 60
+  done
+
+  echo -e "\n\033[31;1mTimeout reached. Terminating $@\033[0m\n"
+  kill -9 $cmd_pid
+}
+
+###
+# Main script
+###
 
   echo "LLVM = " "${LLVM_VERSION}"
   echo "Boost = " "${BOOST_VERSION}"
@@ -113,7 +153,7 @@ retry()
         ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++ --disable-multilib
         set +x
         #need to avoid exceeding travis log limit and getting killed
-        make -j3 --quiet &> gcc.log
+        travis_wait make -j3 --quiet &> gcc.log
         make install
       fi
       cd ${GCC_DIR} && ls -a
