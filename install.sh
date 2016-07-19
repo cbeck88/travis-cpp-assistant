@@ -2,6 +2,10 @@
 
 set -e
 
+  echo "Compiler = " "${COMPILER}"
+  echo "LLVM = " "${LLVM_VERSION}"
+  echo "Boost = " "${BOOST_VERSION}"
+
   ############################################################################
   # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
   ############################################################################
