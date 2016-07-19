@@ -52,7 +52,6 @@ set -x
   ############################################################################
   # Install Boost.Build
   ############################################################################
-  |
     if [[ "${BOOST_BUILD}" == "true" ]]; then
       (cd ${BOOST_DIR}/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2)
       export PATH=${DEPS_DIR}/b2/bin:${PATH}
@@ -60,7 +59,6 @@ set -x
   ############################################################################
   # Install Clang, libc++ and libc++abi
   ############################################################################
-  |
     if [[ "${LLVM_VERSION}" != "" ]]; then
       LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
       if [[ -z "$(ls -A ${LLVM_DIR})" ]]; then
