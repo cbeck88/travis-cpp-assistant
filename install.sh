@@ -95,7 +95,7 @@ retry()
       if [[ -z "$(ls -A ${GCC_DIR})" ]]; then
         GCC_URL=http://mirrors-usa.go-parts.com/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
         mkdir -p ${GCC_DIR} ${GCC_SRC_DIR} ${GCC_OBJ_DIR}
-        retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xJ -C ${GCC_SRC_DIR}
+        retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
         cd ${GCC_SRC_DIR}
         ./contrib/download_prerequisites
         cd ${GCC_OBJ_DIR}
