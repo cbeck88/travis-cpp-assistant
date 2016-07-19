@@ -34,22 +34,22 @@ matrix:
 
     # Clang 3.5
     - os: linux
-      env: LLVM_VERSION=3.5.2 BOOST_VERSION=default COMPILER=clang++3.5
+      env: LLVM_VERSION=3.5.2 BOOST_VERSION=default
       compiler: clang
 
     # Clang 3.6
     - os: linux
-      env: LLVM_VERSION=3.6.2 BOOST_VERSION=default COMPILER=clang++3.6
+      env: LLVM_VERSION=3.6.2 BOOST_VERSION=default
       compiler: clang
 
     # Clang 3.7
     - os: linux
-      env: LLVM_VERSION=3.7.1 BOOST_VERSION=default COMPILER=clang++3.7
+      env: LLVM_VERSION=3.7.1 BOOST_VERSION=default
       compiler: clang
 
     # Clang 3.8
     - os: linux
-      env: LLVM_VERSION=3.8.0 BOOST_VERSION=default COMPILER=clang++3.8
+      env: LLVM_VERSION=3.8.0 BOOST_VERSION=default
       compiler: clang
 
     ##
@@ -57,19 +57,24 @@ matrix:
     ##
 
     - os: linux
-      env: LLVM_VERSION=3.6.2 BOOST_VERSION=1.55.0 COMPILER=clang++3.6
+      env: LLVM_VERSION=3.6.2 BOOST_VERSION=1.55.0
       compiler: clang
 
     - os: linux
-      env: LLVM_VERSION=3.7.1 BOOST_VERSION=1.57.0 COMPILER=clang++3.7
+      env: LLVM_VERSION=3.7.1 BOOST_VERSION=1.57.0
       compiler: clang
 
     - os: linux
-      env: LLVM_VERSION=3.8.0 BOOST_VERSION=1.59.0 COMPILER=clang++3.8
+      env: LLVM_VERSION=3.8.0 BOOST_VERSION=1.59.0
       compiler: clang
 
 install:
   - source ./install.sh
 
 script:
+  - echo ${CXX}
+  - echo ${CXXFLAGS}
+  - echo ${LDFLAGS}
+  - echo ${BOOST_ROOT}
+
   - ./test.sh

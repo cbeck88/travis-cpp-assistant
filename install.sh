@@ -10,7 +10,6 @@ retry()
   $*
 }
 
-  echo "Compiler = " "${COMPILER}"
   echo "LLVM = " "${LLVM_VERSION}"
   echo "Boost = " "${BOOST_VERSION}"
 
@@ -25,8 +24,6 @@ retry()
   ############################################################################
   if [[ "${LLVM_VERSION}" == "default" ]]; then LLVM_VERSION=3.8.0; fi
   if [[ "${BOOST_VERSION}" == "default" ]]; then BOOST_VERSION=1.60.0; fi
-
-  if [[ "${COMPILER}" != "" ]]; then export CXX=${COMPILER}; fi
 
   ############################################################################
   # Install Boost headers
@@ -102,7 +99,7 @@ retry()
         cd ${GCC_SRC_DIR}
         ./contrib/download_prerequisites
         cd ${GCC_OBJ_DIR}
-        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++
+        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++ --disable-multilib
         make install -j2
       fi
       cd ${GCC_DIR} && ls -a
