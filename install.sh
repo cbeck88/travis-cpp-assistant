@@ -111,9 +111,9 @@ retry()
         cd ${GCC_SRC_DIR} && ./contrib/download_prerequisites
         cd ${GCC_OBJ_DIR}
         ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++ --disable-multilib
-        make -j2
-        make install
         set +x
+        make -j2 --quiet #quiet is needed to avoid exceeding travis log limit and getting killed
+        make install
       fi
       cd ${GCC_DIR} && ls -a
       export CXXFLAGS="-nostdinc++ -isystem ${GCC_DIR}/include/c++"
