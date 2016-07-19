@@ -153,7 +153,7 @@ travis_jigger() {
         ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++ --disable-multilib
         set +x
         #need to avoid exceeding travis log limit and getting killed
-        travis_wait make -j3 --quiet &> gcc.log
+        travis_wait make -j3 --quiet
         make install
       fi
       cd ${GCC_DIR} && ls -a
