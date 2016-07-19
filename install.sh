@@ -111,7 +111,8 @@ retry()
         cd ${GCC_SRC_DIR} && ./contrib/download_prerequisites
         cd ${GCC_OBJ_DIR}
         ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++ --disable-multilib
-        make install -j2
+        make -j2
+        make install
         set +x
       fi
       cd ${GCC_DIR} && ls -a
