@@ -163,10 +163,11 @@ travis_jigger() {
         travis_retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
         cd ${GCC_SRC_DIR} && ./contrib/download_prerequisites
         cd ${GCC_OBJ_DIR}
-        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++ --disable-multilib
+        #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
+        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++ --disable-multilib --disable-bootstrap
         set +x
         #need to avoid exceeding travis log limit and getting killed
-        travis_wait make -j3 --quiet
+        travis_wait make -j2 --quiet
         make install
       fi
       cd ${GCC_DIR} && ls -a
