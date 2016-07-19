@@ -11,10 +11,8 @@ env:
 addons:
   apt:
     packages:
-      - gdb
-      - valgrind
-      - g++-6 # This is needed only to get a >= 4.7 version of libstdc++,
-              # clang will fail to build without it
+      - g++-4.9 # This is needed only to get a >= 4.7 version of libstdc++,
+                # clang will fail to build without it
     sources:
       - ubuntu-toolchain-r-test
 
@@ -32,22 +30,22 @@ matrix:
     # All compilers, default boost
     ###
 
-    # Clang 3.5
+    # clang 3.5
     - os: linux
       env: LLVM_VERSION=3.5.2 BOOST_VERSION=default
       compiler: clang
 
-    # Clang 3.6
+    # clang 3.6
     - os: linux
       env: LLVM_VERSION=3.6.2 BOOST_VERSION=default
       compiler: clang
 
-    # Clang 3.7
+    # clang 3.7
     - os: linux
       env: LLVM_VERSION=3.7.1 BOOST_VERSION=default
       compiler: clang
 
-    # Clang 3.8
+    # clang 3.8
     - os: linux
       env: LLVM_VERSION=3.8.0 BOOST_VERSION=default
       compiler: clang
