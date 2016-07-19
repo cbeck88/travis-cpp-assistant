@@ -110,7 +110,9 @@ retry()
     fi
 
   ###
-  # Change back to build directory
+  # Change back to build directory, get rid of wierd bash options
   ##
 
   cd ${TRAVIS_BUILD_DIR}
+  unset -e
+  unset -x
