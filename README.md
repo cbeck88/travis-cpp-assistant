@@ -1,5 +1,7 @@
-travis-ci c++ assistant
-=======================
+# travis-ci c++ assistant
+
+[![Build Status](https://travis-ci.org/cbeck88/travis-cpp-assistant.svg?branch=master)](http://travis-ci.org/cbeck88/travis-cpp-assistant)
+[![WTFPL licensed](https://img.shields.io/badge/license-WTFPL-blue.svg)](./LICENSE)
 
 Have a travis-ci C++ project?
 
