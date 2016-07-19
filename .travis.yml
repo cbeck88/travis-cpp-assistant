@@ -13,6 +13,10 @@ addons:
     packages:
       - gdb
       - valgrind
+      - g++-6 # This is needed only to get a >= 4.7 version of libstdc++,
+              # clang will fail to build without it
+    sources:
+      - ubuntu-toolchain-r-test
 
 cache:
   directories:
