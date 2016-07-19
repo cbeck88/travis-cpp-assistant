@@ -60,7 +60,7 @@ matrix:
       env: LLVM_VERSION=3.7.1 BOOST_VERSION=1.57.0 COMPILER=clang++
       compiler: clang
 
-    - os:linux
+    - os: linux
       env: LLVM_VERSION=3.8.0 BOOST_VERSION=1.59.0 COMPILER=clang++
       compiler: clang
 
