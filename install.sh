@@ -3,6 +3,13 @@
 set -e
 set -x
 
+retry()
+{
+  $* && exit
+  $* && exit
+  $*
+}
+
   echo "Compiler = " "${COMPILER}"
   echo "LLVM = " "${LLVM_VERSION}"
   echo "Boost = " "${BOOST_VERSION}"
@@ -29,12 +36,12 @@ set -x
       if [[ -z "$(ls -A ${BOOST_DIR})" ]]; then
         if [[ "${BOOST_VERSION}" == "trunk" ]]; then
           BOOST_URL="http://github.com/boostorg/boost.git"
-          git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR} || exit 1
+          retry git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR} || exit 1
           (cd ${BOOST_DIR} && ./bootstrap.sh && ./b2 headers)
         else
           BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
           mkdir -p ${BOOST_DIR}
-          { wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}; } || exit 1
+          { retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}; } || exit 1
         fi
       fi
       export BOOST_ROOT="${BOOST_DIR}"
@@ -44,7 +51,7 @@ set -x
   ############################################################################
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
-      mkdir cmake && wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      mkdir cmake && retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
     else
       if ! brew ls --version cmake &>/dev/null; then brew install cmake; fi
@@ -67,10 +74,10 @@ set -x
         LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
         CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
         mkdir -p ${LLVM_DIR} ${LLVM_DIR}/build ${LLVM_DIR}/projects/libcxx ${LLVM_DIR}/projects/libcxxabi ${LLVM_DIR}/clang
-        travis_retry wget --quiet -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
-        travis_retry wget --quiet -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
-        travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
-        travis_retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
+        retry wget --quiet -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
+        retry wget --quiet -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
+        retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
+        retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
         (cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++)
         (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2)
         (cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
@@ -84,8 +91,25 @@ set -x
   ############################################################################
   # Install gcc
   ############################################################################
+    if [[ "${GCC_VERSION}" != "" ]]; then
+      GCC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}
+      GCC_OBJ_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-obj
+      GCC_SRC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-src
+      if [[ -z "$(ls -A ${GCC_DIR})" ]]; then
+        GCC_URL=http://mirrors-usa.go-parts.com/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
+        mkdir -p ${GCC_DIR} ${GCC_SRC_DIR} ${GCC_OBJ_DIR}
+        retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xJ -C ${GCC_SRC_DIR}
+        cd ${GCC_SRC_DIR}
+        ./contrib/download_prerequisites
+        cd ${GCC_OBJ_DIR}
+        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++
+        make install -j2
+      fi
+      cd ${GCC_DIR} && ls -a
+    fi
 
-  #  if [[ "$GCC_VERSION" != "" ]]; then
-  #    GCC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}
-  #    if [[ -z "$(ls -A ${LLVM_DIR})" ]]; then
-  #    fi
+  ###
+  # Change back to build directory
+  ##
+
+  cd ${TRAVIS_BUILD_DIR}
