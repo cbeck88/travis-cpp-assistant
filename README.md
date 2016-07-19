@@ -64,9 +64,9 @@ To use the assistant, set up your `.travis.yml` as follows
 
   If you need to compile boost, then you should `cd` into `BOOST_ROOT` and do it.
 
-* Both `gcc` and `clang` require you to apt-get a few small dependencies into ubuntu-precise.
-  `gcc` has some external libs that it needs like `mpfr`. `clang`
-  requires a gcc standard library version `>= 4.7`.
+* Compiling `clang` requires a gcc standard library version `>= 4.7`.
+  This is older than what is available in precise, so you must source `ubuntu-toolchain-r-test`
+  from `apt` and install at least `g++-4.9` to get new versions of clang.
 
   Check out the [.travis.yml](./travis.yml) of this repo to see a full example.
 
