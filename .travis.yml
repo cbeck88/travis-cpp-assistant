@@ -52,6 +52,26 @@ matrix:
       env: LLVM_VERSION=3.8.0 BOOST_VERSION=default
       compiler: clang
 
+    # gcc 4.9
+    - os: linux
+      env: GCC_VERSION=4.9.3 BOOST_VERSION=default
+      compiler: gcc
+
+    # gcc 5.1
+    - os: linux
+      env: GCC_VERSION=5.1.0 BOOST_VERSION=default
+      compiler: gcc
+
+    # gcc 5.2
+    - os: linux
+      env: GCC_VERSION=5.2.0 BOOST_VERSION=default
+      compiler: gcc
+
+    # gcc 5.3
+    - os: linux
+      env: GCC_VERSION=5.3.0 BOOST_VERSION=default
+      compiler: gcc
+
     ##
     # With varying boost versions
     ##
@@ -77,4 +97,4 @@ script:
   - echo ${LDFLAGS}
   - echo ${BOOST_ROOT}
 
-  - ./test.sh
+  - ./test.sh ${CXX} ${GCC_VERSION} ${LLVM_VERSION} ${BOOST_VERSION}

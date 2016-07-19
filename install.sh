@@ -103,6 +103,10 @@ retry()
         make install -j2
       fi
       cd ${GCC_DIR} && ls -a
+      export CXXFLAGS="-nostdinc++ -isystem ${GCC_DIR}/include/c++"
+      export LDFLAGS="-L ${GCC_DIR}/lib -l libstdc++"
+      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GCC_DIR}/lib"
+      export PATH="${GCC_DIR}/bin:$PATH"
     fi
 
   ###
