@@ -23,7 +23,6 @@ set -e
   ############################################################################
   # Install Boost headers
   ############################################################################
-  |
     if [[ "${BOOST_VERSION}" != "" ]]; then
       export BOOST_DIR=${DEPS_DIR}/boost-${BOOST_VERSION}
       if [[ -z "$(ls -A ${BOOST_DIR})" ]]; then
@@ -42,7 +41,6 @@ set -e
   ############################################################################
   # Install a recent CMake (unless already installed on OS X)
   ############################################################################
-  |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
@@ -88,7 +86,6 @@ set -e
   # Install gcc
   ############################################################################
 
-  #|
   #  if [[ "$GCC_VERSION" != "" ]]; then
   #    GCC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}
   #    if [[ -z "$(ls -A ${LLVM_DIR})" ]]; then
