@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+set -x
 
   echo "Compiler = " "${COMPILER}"
   echo "LLVM = " "${LLVM_VERSION}"
