@@ -74,8 +74,25 @@ travis_jigger() {
   ############################################################################
   # Setup default versions and override compiler if needed
   ############################################################################
+  set -x
   if [[ "${LLVM_VERSION}" == "default" ]]; then export LLVM_VERSION=3.8.0; fi
   if [[ "${BOOST_VERSION}" == "default" ]]; then export BOOST_VERSION=1.60.0; fi
+
+  # If the user doesn't have major.minor.patch, then add a patch_level
+  if [[ "${LLVM_VERSION}" == "3.5" ]]; then export LLVM_VERSION=3.5.2; fi
+  if [[ "${LLVM_VERSION}" == "3.6" ]]; then export LLVM_VERSION=3.6.2; fi
+  if [[ "${LLVM_VERSION}" == "3.7" ]]; then export LLVM_VERSION=3.7.1; fi
+  if [[ "${LLVM_VERSION}" == "3.8" ]]; then export LLVM_VERSION=3.8.0; fi
+  if [[ "${LLVM_VERSION}" == "3.9" ]]; then export LLVM_VERSION=3.9.0; fi
+
+  if [[ "${GCC_VERSION}" == "4.8" ]]; then export GCC_VERSION=4.8.4; fi
+  if [[ "${GCC_VERSION}" == "4.9" ]]; then export GCC_VERSION=3.9.3; fi
+  if [[ "${GCC_VERSION}" == "5.1" ]]; then export GCC_VERSION=5.1.0; fi
+  if [[ "${GCC_VERSION}" == "5.2" ]]; then export GCC_VERSION=5.2.0; fi
+  if [[ "${GCC_VERSION}" == "5.3" ]]; then export GCC_VERSION=5.3.0; fi
+
+  if [[ ${#BOOST_VERSION} -eq 4 ]]; then BOOST_VERSION+=".0"; fi
+  set +x
 
   ############################################################################
   # Install Boost headers
