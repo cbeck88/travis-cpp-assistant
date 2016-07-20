@@ -86,7 +86,7 @@ travis_jigger() {
   if [[ "${LLVM_VERSION}" == "3.9" ]]; then export LLVM_VERSION=3.9.0; fi
 
   if [[ "${GCC_VERSION}" == "4.8" ]]; then export GCC_VERSION=4.8.4; fi
-  if [[ "${GCC_VERSION}" == "4.9" ]]; then export GCC_VERSION=3.9.3; fi
+  if [[ "${GCC_VERSION}" == "4.9" ]]; then export GCC_VERSION=4.9.3; fi
   if [[ "${GCC_VERSION}" == "5.1" ]]; then export GCC_VERSION=5.1.0; fi
   if [[ "${GCC_VERSION}" == "5.2" ]]; then export GCC_VERSION=5.2.0; fi
   if [[ "${GCC_VERSION}" == "5.3" ]]; then export GCC_VERSION=5.3.0; fi
