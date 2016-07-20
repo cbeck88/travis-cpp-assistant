@@ -182,7 +182,7 @@ travis_jigger() {
         cd ${GCC_SRC_DIR} && travis_retry ./contrib/download_prerequisites
         cd ${GCC_OBJ_DIR}
         #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
-        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap
+        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libsanitizer --disable-libquadmath --disable-libgomp --disable-libssp --disable-libvtv
         set +x
         #need to avoid exceeding travis log limit and getting killed
         travis_wait make -j2 --quiet #BOOT_CFLAGS='-O' bootstrap-lean
