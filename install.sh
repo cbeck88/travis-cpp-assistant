@@ -161,8 +161,8 @@ travis_jigger() {
         mkdir -p ${GCC_DIR} ${GCC_SRC_DIR} ${GCC_OBJ_DIR}
         set -x
         travis_retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
-        # trying to get these via apt-get instead c.f. https://gcc.gnu.org/wiki/InstallingGCC
-        #cd ${GCC_SRC_DIR} && ./contrib/download_prerequisites
+        # c.f. https://gcc.gnu.org/wiki/InstallingGCC
+        cd ${GCC_SRC_DIR} && travis_retry ./contrib/download_prerequisites
         cd ${GCC_OBJ_DIR}
         #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
         ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR} --enable-languages=c,c++ --disable-multilib #--disable-bootstrap
