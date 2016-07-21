@@ -97,6 +97,7 @@ travis_jigger() {
   # Install Boost headers
   ############################################################################
     if [[ "${BOOST_VERSION}" != "" ]]; then
+      cd ${DEPS_DIR}
       export BOOST_DIR=${DEPS_DIR}/boost-${BOOST_VERSION}
       if [[ -z "$(ls -A ${BOOST_DIR})" ]]; then
         if [[ "${BOOST_VERSION}" == "trunk" ]]; then
@@ -119,6 +120,7 @@ travis_jigger() {
   # Install a recent CMake (unless already installed on OS X)
   ############################################################################
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      cd ${DEPS_DIR}
       if [[ ! -x ${DEPS_DIR}/cmake/bin/cmake ]]; then
         CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
         echo "Installing cmake linux binary"
@@ -148,6 +150,7 @@ travis_jigger() {
   # Install Clang, libc++ and libc++abi
   ############################################################################
     if [[ "${LLVM_VERSION}" != "" ]]; then
+      cd ${DEPS_DIR}
       LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
       if [[ -z "$(ls -A ${LLVM_DIR})" ]]; then
         LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
@@ -189,6 +192,7 @@ travis_jigger() {
   # Install gcc
   ############################################################################
     if [[ "${GCC_VERSION}" != "" ]]; then
+      cd ${DEPS_DIR}
       GCC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}
       GCC_OBJ_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-obj
       GCC_SRC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-src
@@ -199,8 +203,9 @@ travis_jigger() {
         travis_retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
         # c.f. https://gcc.gnu.org/wiki/InstallingGCC
         cd ${GCC_SRC_DIR}
+        ls -a
         echo "Downloading gcc dependencies"
-        travis_retry ./contrib/download_prerequisites
+        ./contrib/download_prerequisites
         #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
         echo "Configuring gcc"
         cd ${GCC_OBJ_DIR}
