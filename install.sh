@@ -101,12 +101,12 @@ travis_jigger() {
       if [[ -z "$(ls -A ${BOOST_DIR})" ]]; then
         if [[ "${BOOST_VERSION}" == "trunk" ]]; then
           echo "Installing boost from trunk"
-          BOOST_URL="http://github.com/boostorg/boost.git"
+          local BOOST_URL="http://github.com/boostorg/boost.git"
           travis_retry git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR}
           (cd ${BOOST_DIR} && ./bootstrap.sh && ./b2 headers)
         else
           echo "Installing boost from sourceforge"
-          BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
+          local BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
           mkdir -p ${BOOST_DIR}
           travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
         fi
@@ -118,7 +118,7 @@ travis_jigger() {
   ############################################################################
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       if [[ ! -x ${DEPS_DIR}/cmake/bin/cmake ]]; then
-        CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
+        local CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
         mkdir -p ${DEPS_DIR}/cmake
         travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       fi
@@ -143,37 +143,36 @@ travis_jigger() {
   # Install Clang, libc++ and libc++abi
   ############################################################################
     if [[ "${LLVM_VERSION}" != "" ]]; then
-      LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
+      local LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
       if [[ -z "$(ls -A ${LLVM_DIR})" ]]; then
-        LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
-        LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
-        LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
-        CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
+        local LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+        local LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+        local LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+        local CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
         mkdir -p ${LLVM_DIR} ${LLVM_DIR}/build ${LLVM_DIR}/projects/libcxx ${LLVM_DIR}/projects/libcxxabi ${LLVM_DIR}/clang
         echo "Downloading clang"
         travis_retry wget --quiet -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
         travis_retry wget --quiet -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
         travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
         travis_retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
-        echo "Configuring clang"
-        cd ${LLVM_DIR}/build
-        cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++ || exit 1
+        (cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++)
+        (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2)
+        (cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
       fi
 
-      if [[ ! -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
-        echo "Resuming compilation of clang"
-        cd ${LLVM_DIR}/build/projects/libcxx
-        travis_limit_time make install -j2
-        cd ${LLVM_DIR}/build/projects/libcxxabi
-        travis_limit_time make install -j2
-      fi
+      local LLVM_INCLUDE_DIR=${LLVM_DIR}/install/include/c++/v1
+      local LLVM_BIN_DIR=${LLVM_DIR}/install/bin
+      local LLVM_LIB_DIR=${LLVM_DIR}/install/lib
 
-      if [[ -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
+      if [[ ! -d ${LLVM_INCLUDE_DIR} ]]; then echo "WTF: Cannot find llvm includes"; fi
+      if [[ ! -d ${LLVM_LIB_DIR} ]]; then echo "WTF: Cannot find llvm libs"; fi
+
+      if [[ -x "${LLVM_BIN_DIR}/clang++" ]]; then
         echo "Found clang"
-        export CXXFLAGS="-nostdinc++ -isystem${LLVM_DIR}/install/include/c++/v1"
-        export LDFLAGS="-L ${LLVM_DIR}/install/lib -l c++ -l c++abi"
-        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_DIR}/install/lib"
-        export PATH="${LLVM_DIR}/clang/bin:${PATH}"
+        export CXXFLAGS="-nostdinc++ -I${LLVM_INCLUDE_DIR} "
+        export LDFLAGS="-L ${LLVM_LIB_DIR} -lc -lm -lc++ -lc++abi"
+        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_LIB_DIR}"
+        export PATH="${LLVM_BIN_DIR}:${PATH}"
       else
         echo "Could not finish compiling clang"
         export COMPILATION_NOT_FINISHED=true
@@ -184,20 +183,21 @@ travis_jigger() {
   # Install gcc
   ############################################################################
     if [[ "${GCC_VERSION}" != "" ]]; then
-      GCC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}
-      GCC_OBJ_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-obj
-      GCC_SRC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-src
+      local GCC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}
+      local GCC_OBJ_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-obj
+      local GCC_SRC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-src
       if [[ -z "$(ls -A ${GCC_DIR})" ]]; then
         GCC_URL=http://mirrors-usa.go-parts.com/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
         mkdir -p ${GCC_DIR} ${GCC_SRC_DIR} ${GCC_OBJ_DIR}
         echo "Downloading gcc"
         travis_retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
         # c.f. https://gcc.gnu.org/wiki/InstallingGCC
-        cd ${GCC_SRC_DIR} && travis_retry ./contrib/download_prerequisites
+        cd ${GCC_SRC_DIR}
+        travis_retry ./contrib/download_prerequisites
         #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
         echo "Configuring gcc"
         cd ${GCC_OBJ_DIR}
-        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libsanitizer --disable-libquadmath --disable-libgomp --disable-libssp --disable-libvtv --disable-libada --enable-version-specific-runtime-libs || exit 1
+        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libsanitizer --disable-libquadmath --disable-libgomp --disable-libssp --disable-libvtv --disable-libada --enable-version-specific-runtime-libs
       fi
 
       if [[ ! -x "${GCC_DIR}/bin/g++" ]]; then
@@ -208,9 +208,9 @@ travis_jigger() {
 
       if [[ -x "${GCC_DIR}/bin/g++" ]]; then
         echo "Found gcc"
-        export CXXFLAGS="-nostdinc++ -isystem ${GCC_DIR}/include/c++"
-        export LDFLAGS="-L ${GCC_DIR}/lib -l libstdc++"
-        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GCC_DIR}/lib"
+#        export CXXFLAGS="-nostdinc++ -isystem ${GCC_DIR}/include/c++ "
+#        export LDFLAGS=""
+#        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GCC_DIR}/lib"
         export PATH="${GCC_DIR}/bin:$PATH"
       else
         echo "Could not finish compiling gcc"
