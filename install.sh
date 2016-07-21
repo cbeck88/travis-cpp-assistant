@@ -1,29 +1,13 @@
 #!/bin/bash
 
-set -e
-
 #####
 # Versions of travis_retry and travis_wait
 #####
 
 travis_retry() {
-  local result=0
-  local max=3
-  local count=${max}
-  while [ $count -gt 0 ]; do
-    "$@"
-    result=$?
-    [[ "$result" == "0" ]] && break
-    count=$(($count - 1))
-    echo "Command ($@) failed. Retrying: $(($max - $count))" >&2
-    sleep 1
-  done
-
-  [ $count -eq 0 ] && {
-    echo "Retry failed: $@" >&2
-  }
-
-  return $result
+  $* && return
+  $* && return
+  $* || exit 1
 }
 
 # Like "travis_wait", but when the time limit is reached, kills the process
@@ -39,8 +23,8 @@ travis_limit_time() {
   local jigger_pid=$!
   local result
 
-  { wait $cmd_pid 2>/dev/null; result=$?; ps -p$jigger_pid 2>&1>/dev/null && kill $jigger_pid; } || exit 0
-  exit $result
+  { wait $cmd_pid 2>/dev/null; result=$?; ps -p$jigger_pid 2>&1>/dev/null && kill $jigger_pid; } || return 0
+  return $result
 }
 
 travis_jigger() {
@@ -65,19 +49,23 @@ travis_jigger() {
 # Main script
 ###
 
-  echo "LLVM = " "${LLVM_VERSION}"
-  echo "Boost = " "${BOOST_VERSION}"
+  echo "Requested: "
+  echo "BOOST_VERSION = " "${BOOST_VERSION}"
+  echo "GCC_VERSION = " "${GCC_VERSION}"
+  echo "LLVM_VERSION = " "${LLVM_VERSION}"
+  echo "BOOST_BUILD = " "${BOOST_BUILD}"
+  echo
 
   ############################################################################
   # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
   ############################################################################
   export DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+  { mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}; } || exit 1
 
   ############################################################################
   # Setup default versions and override compiler if needed
   ############################################################################
-  set -x
+
   if [[ "${LLVM_VERSION}" == "default" ]]; then export LLVM_VERSION=3.8.0; fi
   if [[ "${BOOST_VERSION}" == "default" ]]; then export BOOST_VERSION=1.60.0; fi
 
@@ -95,7 +83,12 @@ travis_jigger() {
   if [[ "${GCC_VERSION}" == "5.3" ]]; then export GCC_VERSION=5.3.0; fi
 
   if [[ ${#BOOST_VERSION} -eq 4 ]]; then BOOST_VERSION+=".0"; fi
-  set +x
+
+  echo "Configuration: "
+  echo "BOOST_VERSION = " "${BOOST_VERSION}"
+  echo "GCC_VERSION = " "${GCC_VERSION}"
+  echo "LLVM_VERSION = " "${LLVM_VERSION}"
+  echo
 
   ############################################################################
   # Install Boost headers
@@ -107,15 +100,15 @@ travis_jigger() {
           echo "Installing boost from trunk"
           BOOST_URL="http://github.com/boostorg/boost.git"
           set -x
-          travis_retry git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR} || exit 1
+          travis_retry git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR}
           (cd ${BOOST_DIR} && ./bootstrap.sh && ./b2 headers)
           set +x
         else
           echo "Installing boost from sourceforge"
           BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
-          mkdir -p ${BOOST_DIR}
+          mkdir -p ${BOOST_DIR};
           set -x
-          { travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}; } || exit 1
+          travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
           set +x
         fi
       fi
@@ -127,16 +120,13 @@ travis_jigger() {
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       if [[ ! -x ${DEPS_DIR}/cmake/bin/cmake ]]; then
         CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
-        set -x
-        mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
-        set +x
+        mkdir -p ${DEPS_DIR}/cmake
+        travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       fi
       if [[ ! -x  ${DEPS_DIR}/cmake/bin/cmake ]]; then echo "WARN: wtf where is cmake"; fi
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
     else
-      set -x
       if ! brew ls --version cmake &>/dev/null; then brew install cmake; fi
-      set +x
     fi
   ############################################################################
   # Install Boost.Build
@@ -147,7 +137,7 @@ travis_jigger() {
       else
         echo "Compiling boost build"
         set -x
-        (cd ${BOOST_DIR}/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2)
+        (cd ${BOOST_DIR}/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2) || exit
         set +x
       fi
       export PATH=${DEPS_DIR}/b2/bin:${PATH}
@@ -163,13 +153,13 @@ travis_jigger() {
         LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
         CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
         mkdir -p ${LLVM_DIR} ${LLVM_DIR}/build ${LLVM_DIR}/projects/libcxx ${LLVM_DIR}/projects/libcxxabi ${LLVM_DIR}/clang
-        set -x
+        echo "Downloading clang"
         travis_retry wget --quiet -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
         travis_retry wget --quiet -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
         travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
         travis_retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
-        (cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++)
-        set +x
+        echo "Configureing clang"
+        { cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++; } || exit 1
 
         echo "Compiling clang"
         travis_limit_time cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2
@@ -200,7 +190,7 @@ travis_jigger() {
       if [[ -z "$(ls -A ${GCC_DIR})" ]]; then
         GCC_URL=http://mirrors-usa.go-parts.com/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
         mkdir -p ${GCC_DIR} ${GCC_SRC_DIR} ${GCC_OBJ_DIR}
-        set -x
+        echo
         travis_retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
         # c.f. https://gcc.gnu.org/wiki/InstallingGCC
         cd ${GCC_SRC_DIR} && travis_retry ./contrib/download_prerequisites
@@ -228,8 +218,7 @@ travis_jigger() {
     fi
 
   ###
-  # Change back to build directory, get rid of wierd bash options
+  # Change back to build directory
   ##
 
   cd ${TRAVIS_BUILD_DIR}
-  set +e
