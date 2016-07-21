@@ -123,7 +123,7 @@ travis_jigger() {
           echo "Installing boost from sourceforge"
           BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
           mkdir -p ${BOOST_DIR}
-          travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
+          travis_retry wget -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
           echo "Finished installing boost"
         fi
       fi
