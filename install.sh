@@ -131,6 +131,7 @@ travis_jigger() {
         mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
         set +x
       fi
+      if [[ ! -x  ${DEPS_DIR}/cmake/bin/cmake ]]; then echo "WARN: wtf where is cmake"; fi
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
     else
       set -x
