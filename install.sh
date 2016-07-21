@@ -5,6 +5,7 @@
 #####
 
 travis_retry() {
+  echo "Command: $@"
   $* && return
   $* && return
   $* || exit 1
@@ -99,17 +100,13 @@ travis_jigger() {
         if [[ "${BOOST_VERSION}" == "trunk" ]]; then
           echo "Installing boost from trunk"
           BOOST_URL="http://github.com/boostorg/boost.git"
-          set -x
           travis_retry git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR}
           (cd ${BOOST_DIR} && ./bootstrap.sh && ./b2 headers)
-          set +x
         else
           echo "Installing boost from sourceforge"
           BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
-          mkdir -p ${BOOST_DIR};
-          set -x
+          mkdir -p ${BOOST_DIR}
           travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
-          set +x
         fi
       fi
       export BOOST_ROOT="${BOOST_DIR}"
@@ -136,9 +133,7 @@ travis_jigger() {
         echo "Found boost build"
       else
         echo "Compiling boost build"
-        set -x
-        (cd ${BOOST_DIR}/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2) || exit
-        set +x
+        (cd ${BOOST_DIR}/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2) || exit 1
       fi
       export PATH=${DEPS_DIR}/b2/bin:${PATH}
     fi
@@ -158,7 +153,7 @@ travis_jigger() {
         travis_retry wget --quiet -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
         travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
         travis_retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
-        echo "Configureing clang"
+        echo "Configuring clang"
         { cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++; } || exit 1
 
         echo "Compiling clang"
@@ -190,14 +185,14 @@ travis_jigger() {
       if [[ -z "$(ls -A ${GCC_DIR})" ]]; then
         GCC_URL=http://mirrors-usa.go-parts.com/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
         mkdir -p ${GCC_DIR} ${GCC_SRC_DIR} ${GCC_OBJ_DIR}
-        echo
+        echo "Downloading gcc"
         travis_retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
         # c.f. https://gcc.gnu.org/wiki/InstallingGCC
         cd ${GCC_SRC_DIR} && travis_retry ./contrib/download_prerequisites
-        cd ${GCC_OBJ_DIR}
         #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
+        echo "Configuring gcc"
+        cd ${GCC_OBJ_DIR}
         ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libsanitizer --disable-libquadmath --disable-libgomp --disable-libssp --disable-libvtv --disable-libada --enable-version-specific-runtime-libs
-        set +x      
         echo "Compiling g++"
         travis_limit_time cd ${GCC_OBJ_DIR} && make install -j2
       elif [[ ! -x "${GCC_DIR}/bin/g++" ]]; then
