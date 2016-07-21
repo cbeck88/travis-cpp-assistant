@@ -155,11 +155,11 @@ travis_jigger() {
         travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
         travis_retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
         echo "Configuring clang"
-        { cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++; } || { echo "Failed to configure clang"; exit 1; }
+        cd ${LLVM_DIR}/build
+        cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++ || exit 1
+      fi
 
-        echo "Compiling clang"
-        travis_limit_time cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2
-      elif [[ ! -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
+      if [[ ! -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
         echo "Resuming compilation of clang"
         travis_limit_time cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2
       fi
@@ -193,11 +193,11 @@ travis_jigger() {
         #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
         echo "Configuring gcc"
         cd ${GCC_OBJ_DIR}
-        { ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libsanitizer --disable-libquadmath --disable-libgomp --disable-libssp --disable-libvtv --disable-libada --enable-version-specific-runtime-libs } || { echo "Could not configure gcc"; exit 1; }
-        echo "Compiling g++"
-        travis_limit_time cd ${GCC_OBJ_DIR} && make install -j2
-      elif [[ ! -x "${GCC_DIR}/bin/g++" ]]; then
-        echo "Resuming compilation of g++"
+        ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libsanitizer --disable-libquadmath --disable-libgomp --disable-libssp --disable-libvtv --disable-libada --enable-version-specific-runtime-libs || exit 1
+      fi
+
+      if [[ ! -x "${GCC_DIR}/bin/g++" ]]; then
+        echo "Proceeding with compilation of g++"
         travis_limit_time cd ${GCC_OBJ_DIR} && make install -j2
       fi
 
