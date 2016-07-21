@@ -4,6 +4,26 @@
 # Versions of travis_retry and travis_wait
 #####
 
+travis_retry() {
+  local result=0
+  local max=3
+  local count=${max}
+  while [ $count -gt 0 ]; do
+    "$@"
+    result=$?
+    [[ "$result" == "0" ]] && break
+    count=$(($count - 1))
+    echo "Command ($@) failed. Retrying: $(($max - $count))" >&2
+    sleep 1
+  done
+
+  [ $count -eq 0 ] && {
+    echo "Retry failed: $@" >&2
+  }
+
+  return $result
+}
+
 # Like "travis_wait", but when the time limit is reached, kills the process
 # and reports success, rather than an error. Used with "make" commands.
 travis_limit_time() {
@@ -103,7 +123,7 @@ travis_jigger() {
           echo "Installing boost from sourceforge"
           BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
           mkdir -p ${BOOST_DIR}
-          wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
+          travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
           echo "Finished installing boost"
         fi
       fi
@@ -118,7 +138,7 @@ travis_jigger() {
         CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
         echo "Installing cmake linux binary"
         mkdir -p ${DEPS_DIR}/cmake
-        wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+        travis_retry wget --no-check-certificate -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
         echo "Finished installing cmake"
       fi
       if [[ ! -d ${DEPS_DIR}/cmake ]]; then echo "WARN: wtf where is cmake"; fi
@@ -152,10 +172,10 @@ travis_jigger() {
         CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
         mkdir -p ${LLVM_DIR} ${LLVM_DIR}/build ${LLVM_DIR}/projects/libcxx ${LLVM_DIR}/projects/libcxxabi ${LLVM_DIR}/clang
         echo "Downloading clang"
-        wget -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
-        wget -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
-        wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
-        wget -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
+        travis_retry wget -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
+        travis_retry wget -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
+        travis_retry wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
+        travis_retry wget -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
         echo "Building clang"
         (cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++)
         (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2)
@@ -194,7 +214,7 @@ travis_jigger() {
         GCC_URL=http://mirrors-usa.go-parts.com/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
         mkdir -p ${GCC_DIR} ${GCC_SRC_DIR} ${GCC_OBJ_DIR}
         echo "Downloading gcc"
-        wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
+        travis_retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
         # c.f. https://gcc.gnu.org/wiki/InstallingGCC
         echo "Downloading gcc dependencies"
         cd ${GCC_SRC_DIR}
