@@ -152,7 +152,7 @@ travis_jigger() {
     if [[ "${LLVM_VERSION}" != "" ]]; then
       cd ${DEPS_DIR}
       LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
-      if [[ ! -d "$LLVM_DIR}" ]]; then
+      if [[ ! -d ${LLVM_DIR} ]]; then
         LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
         LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
         LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
