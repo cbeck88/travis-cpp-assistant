@@ -170,7 +170,7 @@ travis_jigger() {
 
       if [[ -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
         echo "Found clang"
-        export CXXFLAGS="-nostdinc++ -isystem ${LLVM_DIR}/install/include/c++"
+        export CXXFLAGS="-nostdinc++ -isystem${LLVM_DIR}/install/include/c++/v1"
         export LDFLAGS="-L ${LLVM_DIR}/install/lib -l c++ -l c++abi"
         export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_DIR}/install/lib"
         export PATH="${LLVM_DIR}/clang/bin:${PATH}"
