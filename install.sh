@@ -26,7 +26,9 @@ travis_retry() {
   return $result
 }
 
-travis_wait() {
+# Like "travis_wait", but when the time limit is reached, kills the process
+# and reports success, rather than an error
+travis_limit_time() {
   local cmd="$@"
   local log_file=travis_wait_$$.log
 
@@ -37,12 +39,12 @@ travis_wait() {
   local jigger_pid=$!
   local result
 
-  { wait $cmd_pid 2>/dev/null; result=$?; ps -p$jigger_pid 2>&1>/dev/null && kill $jigger_pid; } || exit 1
+  { wait $cmd_pid 2>/dev/null; result=$?; ps -p$jigger_pid 2>&1>/dev/null && kill $jigger_pid; } || exit 0
   exit $result
 }
 
 travis_jigger() {
-  local timeout=120 # in minutes
+  local timeout=40 # in minutes
   local count=0
 
   local cmd_pid=$1
@@ -57,6 +59,7 @@ travis_jigger() {
   echo -e "\n\033[31;1mTimeout reached. Terminating $@\033[0m\n"
   kill -9 $cmd_pid
 }
+
 
 ###
 # Main script
@@ -101,12 +104,14 @@ travis_jigger() {
       export BOOST_DIR=${DEPS_DIR}/boost-${BOOST_VERSION}
       if [[ -z "$(ls -A ${BOOST_DIR})" ]]; then
         if [[ "${BOOST_VERSION}" == "trunk" ]]; then
+          echo "Installing boost from trunk"
           BOOST_URL="http://github.com/boostorg/boost.git"
           set -x
           travis_retry git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR} || exit 1
           (cd ${BOOST_DIR} && ./bootstrap.sh && ./b2 headers)
           set +x
         else
+          echo "Installing boost from sourceforge"
           BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
           mkdir -p ${BOOST_DIR}
           set -x
@@ -120,10 +125,12 @@ travis_jigger() {
   # Install a recent CMake (unless already installed on OS X)
   ############################################################################
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
-      set -x
-      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
-      set +x
+      if [[ -x ${DEPS_DIR}/cmake/bin/cmake ]]; then
+        CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
+        set -x
+        mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+        set +x
+      fi
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
     else
       set -x
@@ -134,9 +141,14 @@ travis_jigger() {
   # Install Boost.Build
   ############################################################################
     if [[ "${BOOST_BUILD}" == "true" ]]; then
-      set -x
-      (cd ${BOOST_DIR}/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2)
-      set +x
+      if [[ -x "${DEPS_DIR}/b2/bin/b2" ]]; then
+        echo "Found boost build"
+      else
+        echo "Compiling boost build"
+        set -x
+        (cd ${BOOST_DIR}/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2)
+        set +x
+      fi
       export PATH=${DEPS_DIR}/b2/bin:${PATH}
     fi
   ############################################################################
@@ -156,14 +168,25 @@ travis_jigger() {
         travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
         travis_retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
         (cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++)
-        (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2)
-        (cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
         set +x
+
+        echo "Compiling clang"
+        travis_limit_time (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
+      elif [[ ! -x "${LLVM_DIR}/clang/bin/clang++"]]; then
+        echo "Resuming compilation of clang"
+        travis_limit_time (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
       fi
-      export CXXFLAGS="-nostdinc++ -isystem ${LLVM_DIR}/install/include/c++/v1"
-      export LDFLAGS="-L ${LLVM_DIR}/install/lib -l c++ -l c++abi"
-      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_DIR}/install/lib"
-      export PATH="${LLVM_DIR}/clang/bin:${PATH}"
+
+      if [[ -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
+        echo "Found clang"
+        export CXXFLAGS="-nostdinc++ -isystem ${LLVM_DIR}/install/include/c++/v1"
+        export LDFLAGS="-L ${LLVM_DIR}/install/lib -l c++ -l c++abi"
+        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_DIR}/install/lib"
+        export PATH="${LLVM_DIR}/clang/bin:${PATH}"
+      else
+        echo "Could not finish compiling clang"
+        export COMPILATION_NOT_FINISHED=true
+      fi
     fi
 
   ############################################################################
@@ -183,16 +206,24 @@ travis_jigger() {
         cd ${GCC_OBJ_DIR}
         #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
         ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libsanitizer --disable-libquadmath --disable-libgomp --disable-libssp --disable-libvtv --disable-libada --enable-version-specific-runtime-libs
-        set +x
-        #need to avoid exceeding travis log limit and getting killed
-        travis_wait make -j2 --quiet #BOOT_CFLAGS='-O' bootstrap-lean
-        make install
+        set +x      
+        echo "Compiling g++"
+        travis_limit_time (cd ${GCC_OBJ_DIR} && make -j2 && make install)
+      elif [[ ! -x "${GCC_DIR}/bin/g++" ]]; then
+        echo "Resuming compilation of g++"
+        travis_limit_time (cd ${GCC_OBJ_DIR} && make -j2 && make install)
       fi
-      cd ${GCC_DIR} && ls -a
-      export CXXFLAGS="-nostdinc++ -isystem ${GCC_DIR}/include/c++"
-      export LDFLAGS="-L ${GCC_DIR}/lib -l libstdc++"
-      export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GCC_DIR}/lib"
-      export PATH="${GCC_DIR}/bin:$PATH"
+
+      if [[ -x "${GCC_DIR}/bin/g++" ]]; then
+        echo "Found gcc"
+        export CXXFLAGS="-nostdinc++ -isystem ${GCC_DIR}/include/c++"
+        export LDFLAGS="-L ${GCC_DIR}/lib -l libstdc++"
+        export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${GCC_DIR}/lib"
+        export PATH="${GCC_DIR}/bin:$PATH"
+      else
+        echo "Could not finish compiling gcc"
+        export COMPILATION_NOT_FINISHED=true
+      fi
     fi
 
   ###

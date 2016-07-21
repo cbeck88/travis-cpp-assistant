@@ -82,9 +82,12 @@ install:
   - source ./install.sh
 
 script:
-  - echo ${CXX}
-  - echo ${CXXFLAGS}
-  - echo ${LDFLAGS}
-  - echo ${BOOST_ROOT}
-
-  - ./test.sh ${CXX} ${GCC_VERSION} ${LLVM_VERSION} ${BOOST_VERSION}
+  - if [[ ${COMPILATION_NOT_FINISHED} ]]; then
+      echo "Compiler didn't finish compiling, skipping script in order to cache the partial progress"
+    else
+      echo ${CXX};
+      echo ${CXXFLAGS};
+      echo ${LDFLAGS};
+      echo ${BOOST_ROOT};
+      ./test.sh ${CXX} ${GCC_VERSION} ${LLVM_VERSION} ${BOOST_VERSION}
+    fi
