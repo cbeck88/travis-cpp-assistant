@@ -169,6 +169,7 @@ travis_jigger() {
 
       if [[ -x "${LLVM_BIN_DIR}/clang++" ]]; then
         echo "Found clang"
+        # Note: These options c.f. http://libcxx.llvm.org/docs/UsingLibcxx.html
         export CXXFLAGS="-nostdinc++ -I${LLVM_INCLUDE_DIR} "
         export LDFLAGS="-L ${LLVM_LIB_DIR} -lc -lm -lc++ -lc++abi"
         export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${LLVM_LIB_DIR}"
