@@ -125,7 +125,7 @@ travis_jigger() {
   # Install a recent CMake (unless already installed on OS X)
   ############################################################################
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-      if [[ -x ${DEPS_DIR}/cmake/bin/cmake ]]; then
+      if [[ ! -x ${DEPS_DIR}/cmake/bin/cmake ]]; then
         CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
         set -x
         mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
