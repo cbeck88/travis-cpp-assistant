@@ -152,7 +152,7 @@ travis_jigger() {
     if [[ "${LLVM_VERSION}" != "" ]]; then
       cd ${DEPS_DIR}
       LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
-      if [[ -z "$(ls -A ${LLVM_DIR})" ]]; then
+      if [[ ! -d "$LLVM_DIR}" ]]; then
         LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
         LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
         LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
@@ -173,8 +173,8 @@ travis_jigger() {
       local LLVM_BIN_DIR=${LLVM_DIR}/install/bin
       local LLVM_LIB_DIR=${LLVM_DIR}/install/lib
 
-      if [[ ! -d ${LLVM_INCLUDE_DIR} ]]; then echo "WTF: Cannot find llvm includes"; exit 1; fi
-      if [[ ! -d ${LLVM_LIB_DIR} ]]; then echo "WTF: Cannot find llvm libs"; exit 1; fi
+      if [[ ! -d ${LLVM_INCLUDE_DIR} ]]; then echo "WTF: Cannot find llvm includes"; rm -rf ${LLVM_DIR}; fi
+      if [[ ! -d ${LLVM_LIB_DIR} ]]; then echo "WTF: Cannot find llvm libs"; rm -rf ${LLVM_DIR}; fi
 
       if [[ -x "${LLVM_BIN_DIR}/clang++" ]]; then
         echo "Found clang"
