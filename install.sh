@@ -12,7 +12,7 @@ travis_retry() {
 }
 
 # Like "travis_wait", but when the time limit is reached, kills the process
-# and reports success, rather than an error
+# and reports success, rather than an error. Used with "make" commands.
 travis_limit_time() {
   local cmd="$@"
   echo "Command: ${cmd}"
@@ -101,12 +101,12 @@ travis_jigger() {
       if [[ -z "$(ls -A ${BOOST_DIR})" ]]; then
         if [[ "${BOOST_VERSION}" == "trunk" ]]; then
           echo "Installing boost from trunk"
-          local BOOST_URL="http://github.com/boostorg/boost.git"
+          BOOST_URL="http://github.com/boostorg/boost.git"
           travis_retry git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR}
           (cd ${BOOST_DIR} && ./bootstrap.sh && ./b2 headers)
         else
           echo "Installing boost from sourceforge"
-          local BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
+          BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
           mkdir -p ${BOOST_DIR}
           travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
         fi
@@ -118,7 +118,7 @@ travis_jigger() {
   ############################################################################
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       if [[ ! -x ${DEPS_DIR}/cmake/bin/cmake ]]; then
-        local CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
+        CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
         mkdir -p ${DEPS_DIR}/cmake
         travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       fi
@@ -143,12 +143,12 @@ travis_jigger() {
   # Install Clang, libc++ and libc++abi
   ############################################################################
     if [[ "${LLVM_VERSION}" != "" ]]; then
-      local LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
+      LLVM_DIR=${DEPS_DIR}/llvm-${LLVM_VERSION}
       if [[ -z "$(ls -A ${LLVM_DIR})" ]]; then
-        local LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
-        local LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
-        local LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
-        local CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
+        LLVM_URL="http://llvm.org/releases/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz"
+        LIBCXX_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxx-${LLVM_VERSION}.src.tar.xz"
+        LIBCXXABI_URL="http://llvm.org/releases/${LLVM_VERSION}/libcxxabi-${LLVM_VERSION}.src.tar.xz"
+        CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
         mkdir -p ${LLVM_DIR} ${LLVM_DIR}/build ${LLVM_DIR}/projects/libcxx ${LLVM_DIR}/projects/libcxxabi ${LLVM_DIR}/clang
         echo "Downloading clang"
         travis_retry wget --quiet -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
@@ -184,9 +184,9 @@ travis_jigger() {
   # Install gcc
   ############################################################################
     if [[ "${GCC_VERSION}" != "" ]]; then
-      local GCC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}
-      local GCC_OBJ_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-obj
-      local GCC_SRC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-src
+      GCC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}
+      GCC_OBJ_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-obj
+      GCC_SRC_DIR=${DEPS_DIR}/gcc-${GCC_VERSION}-src
       if [[ -z "$(ls -A ${GCC_DIR})" ]]; then
         GCC_URL=http://mirrors-usa.go-parts.com/gcc/releases/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.gz
         mkdir -p ${GCC_DIR} ${GCC_SRC_DIR} ${GCC_OBJ_DIR}
