@@ -171,10 +171,10 @@ travis_jigger() {
         set +x
 
         echo "Compiling clang"
-        travis_limit_time (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
+        travis_limit_time cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2
       elif [[ ! -x "${LLVM_DIR}/clang/bin/clang++"]]; then
         echo "Resuming compilation of clang"
-        travis_limit_time (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
+        travis_limit_time cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2
       fi
 
       if [[ -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
@@ -208,10 +208,10 @@ travis_jigger() {
         ${GCC_SRC_DIR}/configure --prefix=${GCC_DIR}  --disable-checking --enable-languages=c,c++ --disable-multilib --disable-bootstrap --disable-libsanitizer --disable-libquadmath --disable-libgomp --disable-libssp --disable-libvtv --disable-libada --enable-version-specific-runtime-libs
         set +x      
         echo "Compiling g++"
-        travis_limit_time (cd ${GCC_OBJ_DIR} && make -j2 && make install)
+        travis_limit_time cd ${GCC_OBJ_DIR} && make install -j2
       elif [[ ! -x "${GCC_DIR}/bin/g++" ]]; then
         echo "Resuming compilation of g++"
-        travis_limit_time (cd ${GCC_OBJ_DIR} && make -j2 && make install)
+        travis_limit_time cd ${GCC_OBJ_DIR} && make install -j2
       fi
 
       if [[ -x "${GCC_DIR}/bin/g++" ]]; then
