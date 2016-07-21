@@ -172,7 +172,7 @@ travis_jigger() {
 
         echo "Compiling clang"
         travis_limit_time cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2
-      elif [[ ! -x "${LLVM_DIR}/clang/bin/clang++"]]; then
+      elif [[ ! -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
         echo "Resuming compilation of clang"
         travis_limit_time cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2
       fi
