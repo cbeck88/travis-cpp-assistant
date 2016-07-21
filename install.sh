@@ -159,10 +159,11 @@ travis_jigger() {
         CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-14.04.tar.xz"
         mkdir -p ${LLVM_DIR} ${LLVM_DIR}/build ${LLVM_DIR}/projects/libcxx ${LLVM_DIR}/projects/libcxxabi ${LLVM_DIR}/clang
         echo "Downloading clang"
-        travis_retry wget --quiet -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
-        travis_retry wget --quiet -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
-        travis_retry wget --quiet -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
-        travis_retry wget --quiet -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
+        travis_retry wget -O - ${LLVM_URL}      | tar --strip-components=1 -xJ -C ${LLVM_DIR}
+        travis_retry wget -O - ${LIBCXX_URL}    | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxx
+        travis_retry wget -O - ${LIBCXXABI_URL} | tar --strip-components=1 -xJ -C ${LLVM_DIR}/projects/libcxxabi
+        travis_retry wget -O - ${CLANG_URL}     | tar --strip-components=1 -xJ -C ${LLVM_DIR}/clang
+        echo "Building clang"
         (cd ${LLVM_DIR}/build && cmake .. -DCMAKE_INSTALL_PREFIX=${LLVM_DIR}/install -DCMAKE_CXX_COMPILER=clang++)
         (cd ${LLVM_DIR}/build/projects/libcxx && make install -j2)
         (cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2)
@@ -172,8 +173,8 @@ travis_jigger() {
       local LLVM_BIN_DIR=${LLVM_DIR}/install/bin
       local LLVM_LIB_DIR=${LLVM_DIR}/install/lib
 
-      if [[ ! -d ${LLVM_INCLUDE_DIR} ]]; then echo "WTF: Cannot find llvm includes"; fi
-      if [[ ! -d ${LLVM_LIB_DIR} ]]; then echo "WTF: Cannot find llvm libs"; fi
+      if [[ ! -d ${LLVM_INCLUDE_DIR} ]]; then echo "WTF: Cannot find llvm includes"; exit 1; fi
+      if [[ ! -d ${LLVM_LIB_DIR} ]]; then echo "WTF: Cannot find llvm libs"; exit 1; fi
 
       if [[ -x "${LLVM_BIN_DIR}/clang++" ]]; then
         echo "Found clang"
