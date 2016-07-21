@@ -104,11 +104,13 @@ travis_jigger() {
           BOOST_URL="http://github.com/boostorg/boost.git"
           travis_retry git clone --depth 1 --recursive --quiet ${BOOST_URL} ${BOOST_DIR}
           (cd ${BOOST_DIR} && ./bootstrap.sh && ./b2 headers)
+          echo "Finished installing boost"
         else
           echo "Installing boost from sourceforge"
           BOOST_URL="http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION//\./_}.tar.gz"
           mkdir -p ${BOOST_DIR}
           travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xz -C ${BOOST_DIR}
+          echo "Finished installing boost"
         fi
       fi
       export BOOST_ROOT="${BOOST_DIR}"
@@ -119,10 +121,12 @@ travis_jigger() {
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       if [[ ! -x ${DEPS_DIR}/cmake/bin/cmake ]]; then
         CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
+        echo "Installing cmake linux binary"
         mkdir -p ${DEPS_DIR}/cmake
         travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+        echo "Finished installing cmake"
       fi
-      if [[ ! -x  ${DEPS_DIR}/cmake/bin/cmake ]]; then echo "WARN: wtf where is cmake"; fi
+      if [[ ! -x ${DEPS_DIR}/cmake/bin/cmake ]]; then echo "WARN: wtf where is cmake"; fi
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
     else
       if ! brew ls --version cmake &>/dev/null; then brew install cmake; fi
@@ -136,6 +140,7 @@ travis_jigger() {
       else
         echo "Compiling boost build"
         (cd ${BOOST_DIR}/tools/build && ./bootstrap.sh && ./b2 install --prefix=${DEPS_DIR}/b2) || { echo "Failed to build boost.build"; exit 1; }
+        echo "Succeeded"
       fi
       export PATH=${DEPS_DIR}/b2/bin:${PATH}
     fi
@@ -194,6 +199,7 @@ travis_jigger() {
         travis_retry wget --quiet -O - ${GCC_URL} | tar --strip-components=1 -xz -C ${GCC_SRC_DIR}
         # c.f. https://gcc.gnu.org/wiki/InstallingGCC
         cd ${GCC_SRC_DIR}
+        echo "Downloading gcc dependencies"
         travis_retry ./contrib/download_prerequisites
         #disable-bootstrap is an unusual option, but we're trying to make it build in < 60 min
         echo "Configuring gcc"
