@@ -26,6 +26,7 @@ travis_limit_time() {
   local result
 
   { wait $cmd_pid 2>/dev/null; result=$?; ps -p$jigger_pid 2>&1>/dev/null && kill $jigger_pid; } || return 0
+  if [[ $result -eq 0 ]]; then echo "Command succeeded: ${cmd}"; else echo "Command failed: ${cmd}"; fi
   return $result
 }
 
@@ -161,7 +162,10 @@ travis_jigger() {
 
       if [[ ! -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
         echo "Resuming compilation of clang"
-        travis_limit_time cd ${LLVM_DIR}/build/projects/libcxx && make install -j2 && cd ${LLVM_DIR}/build/projects/libcxxabi && make install -j2
+        cd ${LLVM_DIR}/build/projects/libcxx
+        travis_limit_time make install -j2
+        cd ${LLVM_DIR}/build/projects/libcxxabi
+        travis_limit_time make install -j2
       fi
 
       if [[ -x "${LLVM_DIR}/clang/bin/clang++" ]]; then
@@ -198,7 +202,8 @@ travis_jigger() {
 
       if [[ ! -x "${GCC_DIR}/bin/g++" ]]; then
         echo "Proceeding with compilation of g++"
-        travis_limit_time cd ${GCC_OBJ_DIR} && make install -j2
+        cd ${GCC_OBJ_DIR}
+        travis_limit_time make install -j2
       fi
 
       if [[ -x "${GCC_DIR}/bin/g++" ]]; then
