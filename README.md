@@ -3,7 +3,13 @@
 [![Build Status](https://travis-ci.org/cbeck88/travis-cpp-assistant.svg?branch=master)](http://travis-ci.org/cbeck88/travis-cpp-assistant)
 [![WTFPL licensed](https://img.shields.io/badge/license-WTFPL-blue.svg)](./LICENSE)
 
-# Note: WIP, GCC not quite working yet
+# Note: Abandoned
+
+This project is basically abandoned, I was ultimately not able to find a way
+to install gcc from source in home directory in travis images without timing out the build, after
+trying many things. Feel free to pick it up and fork it!
+
+# Intro
 
 Do you have a travis-CI C++ project?
 
