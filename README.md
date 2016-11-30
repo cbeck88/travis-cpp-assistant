@@ -70,7 +70,7 @@ To use the assistant, set up your `.travis.yml` as follows
   This is older than what is available in precise, so you must source `ubuntu-toolchain-r-test`
   from `apt` and install at least `g++-4.9` to get new versions of clang.
 
-  Check out the [.travis.yml](./travis.yml) of this repo to see a full example.
+  Check out the [.travis.yml](./.travis.yml) of this repo to see a full example.
 
 For more info about caching, and clearing a bad cache, see [travis-ci docs](https://docs.travis-ci.com/user/caching/).
 
